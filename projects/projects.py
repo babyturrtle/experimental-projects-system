@@ -11,7 +11,6 @@ from werkzeug.exceptions import abort
 connection = db.connect()
 cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-
 """ 
 Fragment functions 
 """
@@ -32,6 +31,16 @@ def get_project(project_id):
         abort(404, "Проект №{0} не находится в базе данных.".format(project_id))
 
     return project
+
+
+def get_projects():
+    """ Get all the projects from the database. """
+
+    cursor.execute(
+        "SELECT id, name, start_year, end_year FROM projects"
+    )
+    projects = cursor.fetchall()
+    return projects
 
 
 def get_project_schools(project_id):
@@ -129,10 +138,22 @@ def get_staff_member(staff_id):
     return staff_member
 
 
+def get_staff():
+    """ Get all the staff members from the database. """
+
+    cursor.execute(
+        "SELECT id, last_name, first_name, patronymic, description"
+        " FROM staff"
+        " ORDER BY last_name;"
+    )
+    staff = cursor.fetchall()
+    return staff
+
+
 def get_lab(lab_id):
     """ Get a lab from the database. """
 
-    cursor. execute(
+    cursor.execute(
         "SELECT labs.id, labs.name, labs.head_id, staff.last_name, staff.first_name, staff.patronimic"
         " FROM labs"
         " INNER JOIN staff ON labs.head_id = staff.id"
@@ -145,6 +166,19 @@ def get_lab(lab_id):
         abort(404, "Лаборатория №{0} не находится в базе данных.".format(lab_id))
 
     return lab
+
+
+def get_labs():
+    """ Get all the labs from the database. """
+
+    cursor.execute(
+        "SELECT labs.id, labs.name, labs.head_id, staff.last_name, staff.first_name, staff.patronymic"
+        " FROM labs"
+        " INNER JOIN staff ON labs.head_id = staff.id"
+        " ORDER BY labs.name;"
+    )
+    labs = cursor.fetchall()
+    return labs
 
 
 def get_school(school_id):
@@ -162,6 +196,18 @@ def get_school(school_id):
         abort(404, "Учреждение образования №{0} не находится в базе данных.".format(school_id))
 
     return school
+
+
+def get_schools():
+    """ Get all the schools from the database. """
+
+    cursor.execute(
+        "SELECT id, name"
+        " FROM schools"
+        " ORDER BY name;"
+    )
+    schools = cursor.fetchall()
+    return schools
 
 
 """ 
@@ -182,11 +228,7 @@ def index():
 def view_projects():
     """ View all the projects in the database in alphabetical order. """
 
-    cursor.execute(
-        "SELECT id, name, start_year, end_year FROM projects"
-    )
-    projects = cursor.fetchall()
-
+    projects = get_projects()
     return render_template("projects.html", projects=projects)
 
 
@@ -200,7 +242,8 @@ def view_project(project_id):
     sci_aid = get_project_sci_aid(project_id)
     org_aid = get_project_org_aid(project_id)
 
-    return render_template("project.html", project=project, schools=schools, heads=heads, sci_aid=sci_aid, org_aid=org_aid)
+    return render_template("project.html", project=project, schools=schools, heads=heads, sci_aid=sci_aid,
+                           org_aid=org_aid)
 
 
 @app.route("/projects/<int:project_id>/edit", methods=("GET", "POST"))
@@ -235,32 +278,47 @@ def edit_project(project_id):
 def add_project():
     """ Add a new project to the database. """
 
+    all_schools = get_schools()
+    all_staff = get_staff()
+    all_labs = get_labs()
+
+    school_list = []
+    head_list = []
+    sci_aid_list = []
+    org_aid_list = []
+
     if request.method == "POST":
+
         name = request.form["name"]
         start_year = request.form["start_year"]
         end_year = request.form["end_year"]
-        schools = request.form["schools"]
+
+        school = request.form["school"]
         sci_aid = request.form["sci_aid"]
         org_aid = request.form["org_aid"]
-        heads = request.form["org_aid"]
+        head = request.form["head"]
+
         error = None
         if not name:
             error = "Введите название проекта."
         if not start_year and not end_year:
             error = "Введите сроки проекта."
-        if not heads:
+
+        if not head_list:
             error = "Введите руководителя(ей) проекта."
-        if not schools:
+        if not school_list:
             error = "Выберите учреждения образования, участвующие в проекте."
-        if not sci_aid:
+        if not sci_aid_list:
             error = "Выберите научно-методическое сопровождение проекта."
-        if not org_aid:
+        if not org_aid_list:
             error = "Выберите организационное сопровождение проекта."
+
         if error is not None:
             flash(error)
+
         else:
             cursor.execute(
-                "INSERT OR IGNORE INTO projects (name, start_year, end_year)"
+                "INSERT IGNORE INTO projects (name, start_year, end_year)"
                 " VALUES (?, ?, ?)",
                 (name, start_year, end_year),
             )
@@ -269,50 +327,44 @@ def add_project():
             project_id = cursor.lastrowid
 
             # Руководители
-            head_id_list = []
+            # heads should be a list (or dict ?) of tuples from db
             for head in heads:
-                head_id_tuple = cursor.execute(
-                    "SELECT id FROM staff"
-                    " WHERE last_name = ?",
-                    (head,),
-                ).fetchone()
-                head_id = head_id_tuple[0]
-                head_id_list.append(head_id)
-
-            for head_id in head_id_list:
                 cursor.execute(
-                    "INSERT OR IGNORE INTO project_staff (project_id, head_id, relationship)"
+                    "INSERT IGNORE INTO project_staff (project_id, head_id, relationship)"
                     " VALUES (?, ?, ?)",
-                    (project_id, head_id, "Руководитель")
+                    (project_id, head['id'], "Руководитель")
                 )
                 db.connection.commit()
 
             # Организационное сопровождение
-            cursor.execute(
-                "INSERT OR IGNORE INTO project_staff (project_id, head_id, relationship)"
-                " VALUES (?, ?, ?)",
-                (project_id, org_id, "Сопровождение")
-            )
-            db.connection.commit()
+            for org in org_aid:
+                cursor.execute(
+                    "INSERT IGNORE INTO project_staff (project_id, head_id, relationship)"
+                    " VALUES (?, ?, ?)",
+                    (project_id, org['id'], "Сопровождение")
+                )
+                db.connection.commit()
 
             # Учреждения образования
-            cursor.execute(
-                "INSERT OR IGNORE INTO project_school (project_id, school_id)"
-                " VALUES (?, ?)",
-                (project_id, school_id)
-            )
-            db.connection.commit()
+            for school in schools:
+                cursor.execute(
+                    "INSERT IGNORE INTO project_school (project_id, school_id)"
+                    " VALUES (?, ?)",
+                    (project_id, school['id'])
+                )
+                db.connection.commit()
 
             # Научно-методическое сопровождение
-            cursor.execute(
-                "INSERT OR IGNORE INTO sci_aid (project_id, lab_id)"
-                " VALUES (?, ?)",
-                (project_id, lab_id)
-            )
-            db.connection.commit()
+            for lab in sci_aid:
+                cursor.execute(
+                    "INSERT IGNORE INTO sci_aid (project_id, lab_id)"
+                    " VALUES (?, ?)",
+                    (project_id, lab['id'])
+                )
+                db.connection.commit()
 
         return redirect(url_for(index()))
-    return render_template("add_project.html")
+    return render_template("add_project.html", all_schools=all_schools, all_staff=all_staff, all_labs=all_labs)
 
 
 @app.route("/projects/<int:project_id>/delete", methods=("POST",))
@@ -348,13 +400,7 @@ def delete_project(project_id):
 def view_staff():
     """ View all the staff members in the database in alphabetical order. """
 
-    cursor.execute(
-        "SELECT id, last_name, first_name, patronymic, description"
-        " FROM staff"
-        " ORDER BY last_name;"
-    )
-    staff = cursor.fetchall()
-
+    staff = get_staff()
     return render_template("staff.html", staff=staff)
 
 
@@ -416,7 +462,7 @@ def add_staff():
             flash(error)
         else:
             cursor.execute(
-                "INSERT OR IGNORE INTO staff (last_name, first_name, patronymic, description)"
+                "INSERT IGNORE INTO staff (last_name, first_name, patronymic, description)"
                 " VALUES (?, ?, ?, ?)",
                 (last_name, first_name, patronymic, description),
             )
@@ -454,14 +500,7 @@ def delete_staff(staff_id):
 def view_labs():
     """ View all the labs in the database in alphabetical order. """
 
-    cursor.execute(
-        "SELECT labs.id, labs.name, labs.head_id, staff.last_name, staff.first_name, staff.patronymic"
-        " FROM labs"
-        " INNER JOIN staff ON labs.head_id = staff.id"
-        " ORDER BY labs.name;"
-    )
-    labs = cursor.fetchall()
-
+    labs = get_labs()
     return render_template("labs.html", labs=labs)
 
 
@@ -531,7 +570,7 @@ def add_lab():
             staff_id = cursor.fetchone()
             for i in staff_id:
                 cursor.execute(
-                    "INSERT OR IGNORE INTO labs (name, head_id)"
+                    "INSERT IGNORE INTO labs (name, head_id)"
                     " VALUES (?, ?)",
                     (name, i),
                 )
@@ -565,13 +604,7 @@ def delete_lab(lab_id):
 def view_schools():
     """ View all the schools in the database in alphabetical order. """
 
-    cursor.execute(
-        "SELECT id, name"
-        " FROM schools"
-        " ORDER BY name;"
-    )
-    schools = cursor.fetchall()
-
+    schools = get_schools()
     return render_template("schools.html", schools=schools)
 
 
@@ -637,7 +670,7 @@ def add_school():
             flash(error)
         else:
             cursor.execute(
-                "INSERT OR IGNORE INTO schools (school_type, name, city, region)"
+                "INSERT IGNORE INTO schools (school_type, name, city, region)"
                 " VALUES (?, ?, ?, ?)",
                 (school_type, name, city, region),
             )
@@ -670,6 +703,19 @@ Search functions
 """
 
 
+@app.route("/search")
+def search_projects():
+    """ Filter projects based on other parameters. """
+
+    return 0
+
+
 """ 
 File+Folder functions 
 """
+
+
+def get_folder(project_id):
+    """ Display folder structure for the specific project. """
+
+    return 0
