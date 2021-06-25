@@ -25,25 +25,61 @@ def view_project(project_id):
     return render_template("project.html", project=project)
 
 
+""" --------------------------------- """
+
+
+@app.route("/getallprojects")
+def get_all_projects():
+    all_projects = Project.query.all()
+    return json.dumps(all_projects)
+
+
+@app.route("/getallschools")
+def get_all_schools():
+    all_schools = School.query.all()
+    return json.dumps(all_schools)
+
+
+@app.route("/getallstaff")
+def get_all_staff():
+    all_staff = Staff.query.all()
+    return json.dumps(all_staff)
+
+
+@app.route("/getalllabs")
+def get_all_labs():
+    all_labs = Lab.query.all()
+    return json.dumps(all_labs)
+
+
+""" --------------------------------- """
+
+
 @app.route("/projects/<int:project_id>/edit", methods=("GET", "POST"))
 def edit_project(project_id):
     """ Edit project information in the database. """
 
     project = Project.query(Project.id == project_id).first()
 
+    '''
     all_schools = School.query.all()
     all_staff = Staff.query.all()
     all_labs = Lab.query.all()
-
-    school_list = []
-    head_list = []
-    sci_aid_list = []
-    org_aid_list = []
+    '''
 
     if request.method == "POST":
         name = request.form["name"]
         start_year = request.form["start_year"]
         end_year = request.form["end_year"]
+        schools_json = request.form["schools_json"]
+        heads_json = request.form["heads_json"]
+        sci_aid_json = request.form["sci_aid_json"]
+        org_aid_json = request.form["org_aid_json"]
+
+        school_list = json.loads(schools_json)
+        head_list = json.loads(heads_json)
+        sci_aid_list = json.loads(org_aid_json)
+        org_aid_list = json.loads(sci_aid_json)
         error = None
         if not name:
             error = "Введите название проекта."
@@ -72,8 +108,7 @@ def edit_project(project_id):
 
         return redirect(url_for(view_project(project_id)))
 
-    return render_template("project_edit.html", project=project, all_staff=all_staff, all_schools=all_schools,
-                           all_labs=all_labs)
+    return render_template("project_edit.html", project=project)
 
 
 @app.route("/projects/<int:project_id>/delete", methods=("POST",))
@@ -122,7 +157,8 @@ def import_application():
                 file_text = f.read()
         '''
 
-        projects_json = request.json
+        # projects_json = request.json
+        projects_json = request.form["projects_json"]
         projects = json.loads(projects_json)
 
         for project in projects:
@@ -176,11 +212,6 @@ def import_application():
 def search_projects():
     """ Filter projects based on other parameters. """
 
-    all_projects = Project.query.all()
-    all_schools = School.query.all()
-    all_staff = Staff.query.all()
-    all_labs = Lab.query.all()
-
     school_list = []
     head_list = []
     sci_aid_list = []
@@ -199,28 +230,24 @@ def search_projects():
         lab_name = request.form["lab_name"]
 
         if name:
-            query = query + 'Project.name == name'
+            query += 'Project.name == name'
         if start_year:
-            query = query + 'Project.start_year == start_year'
+            query += 'Project.start_year == start_year'
         if end_year:
-            query = query + 'Project.end_year == end_year'
+            query += 'Project.end_year == end_year'
 
-        result = Project.query(query).all()
+    result = Project.query(query).all()
 
-    return render_template('search.html', all_projects=all_projects, all_schools=all_schools, all_staff=all_staff,
-                           all_labs=all_labs, result=result)
+    return render_template('search.html', result=result)
 
 
 @app.route("/search-result")
-def view_search_result():
+def view_search_result(search):
+    """ View the results of the search. """
 
-    return 0
+    results = []
 
-
-@app.route("/search-result/export")
-def export_search_result():
-
-    return 0
+    return render_template('result.html', results=results)
 
 
 """----------------------------"""
