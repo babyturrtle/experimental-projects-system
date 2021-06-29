@@ -1,6 +1,8 @@
 """ Data models. """
 
 from . import db
+from wtforms import Form, StringField, SelectField
+
 
 class Project(db.Model):
     """ Data model for experimental projects. """
@@ -86,3 +88,11 @@ sci_aid = db.Table(
     db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
     db.Column('lab_id', db.Integer, db.ForeignKey('labs.id'), primary_key=True)
 )
+
+
+class ProjectSearchForm(Form):
+    choices = [('Date', 'Date'),
+               ('School', 'School'),
+               ('Head', 'Head')]
+    date = SelectField('Найти проект: ', choices=choices)
+    name = StringField('')
