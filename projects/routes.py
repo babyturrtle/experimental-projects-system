@@ -59,12 +59,6 @@ def edit_project(project_id):
 
     project = Project.query.filter(Project.id == project_id).first()
 
-    '''
-    all_schools = School.query.all()
-    all_staff = Staff.query.all()
-    all_labs = Lab.query.all()
-    '''
-
     if request.method == "POST":
         name = request.form["name"]
         start_year = request.form["start_year"]
