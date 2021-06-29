@@ -1,9 +1,7 @@
 """ Application routes. """
 
 from flask import current_app as app
-from flask import redirect, render_template, request, url_for, flash  # , make_response
-# from werkzeug.exceptions import abort
-# from werkzeug.utils import secure_filename
+from flask import redirect, render_template, request, url_for, flash
 import json
 
 from .models import Project, Staff, School, Lab, db
@@ -21,7 +19,7 @@ def view_projects():
 def view_project(project_id):
     """ View a specific project and its info based on its id. """
 
-    project = Project.query(Project.id == project_id).first()
+    project = Project.query.filter(Project.id == project_id).first()
     return render_template("project.html", project=project)
 
 
@@ -59,7 +57,7 @@ def get_all_labs():
 def edit_project(project_id):
     """ Edit project information in the database. """
 
-    project = Project.query(Project.id == project_id).first()
+    project = Project.query.filter(Project.id == project_id).first()
 
     '''
     all_schools = School.query.all()
@@ -80,6 +78,7 @@ def edit_project(project_id):
         head_list = json.loads(heads_json)
         sci_aid_list = json.loads(org_aid_json)
         org_aid_list = json.loads(sci_aid_json)
+
         error = None
         if not name:
             error = "Введите название проекта."
@@ -95,14 +94,21 @@ def edit_project(project_id):
             error = "Выберите организационное сопровождение проекта."
         if error is not None:
             flash(error)
+
         else:
             project.name = name
             project.start_year = start_year
             project.end_year = end_year
-            project.schools = school_list
-            project.heads = head_list
-            project.org_aid = org_aid_list
-            project.sci_aid = sci_aid_list
+
+            for school in school_list:
+                project.schools.append(school)
+            for head in head_list:
+                project.heads.append(head)
+            for org_aid in org_aid_list:
+                project.org_aid.append(org_aid)
+            for sci_aid in sci_aid_list:
+                project.sci_aid.append(sci_aid)
+
             db.session.add(project)
             db.session.commit()
 
@@ -111,19 +117,66 @@ def edit_project(project_id):
     return render_template("project_edit.html", project=project)
 
 
+@app.route("/projects/<int:project_id>/delete_school", methods=("POST",))
+def delete_project_school(project_id, school):
+    """ Delete a school from a project. """
+
+    project = Project.query.filter(Project.id == project_id).first()
+    project.schools.remove(school)
+    db.session.commit()
+
+    return redirect(url_for(edit_project(project_id)))
+
+
+@app.route("/projects/<int:project_id>/delete_head", methods=("POST",))
+def delete_project_head(project_id, head):
+    """ Delete a head from a project. """
+
+    project = Project.query.filter(Project.id == project_id).first()
+    project.heads.remove(head)
+    db.session.commit()
+
+    return redirect(url_for(edit_project(project_id)))
+
+
+@app.route("/projects/<int:project_id>/delete_org_aid", methods=("POST",))
+def delete_project_org_aid(project_id, org_aid_ind):
+    """ Delete org aid from a project. """
+
+    project = Project.query.filter(Project.id == project_id).first()
+    project.org_aid.remove(org_aid_ind)
+    db.session.commit()
+
+    return redirect(url_for(edit_project(project_id)))
+
+
+@app.route("/projects/<int:project_id>/delete_sci_aid", methods=("POST",))
+def delete_project_sci_aid(project_id, sci_aid_ind):
+    """ Delete sci aid from a project. """
+
+    project = Project.query.filter(Project.id == project_id).first()
+    project.sci_aid.remove(sci_aid_ind)
+    db.session.commit()
+
+    return redirect(url_for(edit_project(project_id)))
+
+
 @app.route("/projects/<int:project_id>/delete", methods=("POST",))
 def delete_project(project_id):
     """ Delete a project from the database. """
 
-    project = Project.query(Project.id == project_id).first()
+    project = Project.query.filter(Project.id == project_id).first()
     db.session.delete(project)
-    project.applications = []
+    project.schools = []
     project.heads = []
     project.org_aid = []
     project.sci_aid = []
     db.session.commit()
 
     return redirect(url_for(view_projects))
+
+
+""" ------------------------------------------ """
 
 
 @app.route("/application", methods=["GET", "POST"])
@@ -139,25 +192,6 @@ def import_application():
         if error is not None:
             flash(error)
 
-        '''
-        if 'file' not in request.files:
-            flash('Загрузите файл заявки.')
-            return redirect(request.url)
-        
-        file = request.files['file']
-
-        if file.filename == '':
-            flash('Загрузите файл заявки.')
-            return redirect(request.url)
-
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(filename)
-            with open(filename) as f:
-                file_text = f.read()
-        '''
-
-        # projects_json = request.json
         projects_json = request.form["projects_json"]
         projects = json.loads(projects_json)
 
@@ -170,7 +204,7 @@ def import_application():
                                     region=region)
                 db.session.add(new_school)
                 db.session.commit()
-                new_project.applications.append(new_school)
+                new_project.schools.append(new_school)
 
             for head in project['heads']:
                 new_staff = Staff(name=head['name'], phone_num=head['phone_num'],
@@ -212,42 +246,43 @@ def import_application():
 def search_projects():
     """ Filter projects based on other parameters. """
 
-    school_list = []
-    head_list = []
-    sci_aid_list = []
-    org_aid_list = []
-
     query = ''
 
     if request.method == "POST":
+
         name = request.form["name"]
         start_year = request.form["start_year"]
         end_year = request.form["end_year"]
+
+        head = request.form["head"]
+        org_aid = request.form["org_aid"]
+        lab = request.form["lab"]
+
         school_name = request.form["school_name"]
         school_region = request.form["school_region"]
-        head_name = request.form["head_name"]
-        org_aid_name = request.form["org_aid_name"]
-        lab_name = request.form["lab_name"]
+        school_district = request.form["school_district"]
+        school_city = request.form["school_city"]
 
         if name:
-            query += 'Project.name == name'
+            name_like = "%{}%".format(name)
+            results = Project.query.filter(Project.name.ilike(name_like)).all()
+            query += 'Project.name.like(name_like)'
         if start_year:
             query += 'Project.start_year == start_year'
         if end_year:
             query += 'Project.end_year == end_year'
+        if head:
+            query += 'Project.heads == head'
+        if org_aid:
+            query += 'Project.org_aid == org_aid'
+        if lab:
+            query += 'Project.sci_aid == lab'
 
-    result = Project.query(query).all()
+        # results = Project.query.filter(query).all()
 
-    return render_template('search.html', result=result)
+        return render_template("result.html", results=results)
 
-
-@app.route("/search-result")
-def view_search_result(search):
-    """ View the results of the search. """
-
-    results = []
-
-    return render_template('result.html', results=results)
+    return render_template('search.html')
 
 
 """----------------------------"""
@@ -265,7 +300,7 @@ def view_schools():
 def view_school(school_id):
     """ View a specific school and its info based on its id. """
 
-    school = School.query(School.id == school_id).first()
+    school = School.query.filter(School.id == school_id).first()
     return render_template("school.html", school=school)
 
 
@@ -273,7 +308,7 @@ def view_school(school_id):
 def edit_school(school_id):
     """ Edit school information in the database. """
 
-    school = School.query(School.id == school_id).first()
+    school = School.query.filter(School.id == school_id).first()
     if request.method == "POST":
         name = request.form["name"]
         city = request.form["city"]
@@ -305,7 +340,7 @@ def edit_school(school_id):
 def delete_school(school_id):
     """ Delete a school from the database. """
 
-    school = School.query(School.id == school_id).first()
+    school = School.query.filter(School.id == school_id).first()
     db.session.delete(school)
     school.project = ''
     db.session.commit()
@@ -325,7 +360,7 @@ def view_staff():
 def view_staff_member(staff_id):
     """ View a specific staff member and their info based on its id. """
 
-    staff_member = Staff.query(Staff.id == staff_id).first()
+    staff_member = Staff.query.filter(Staff.id == staff_id).first()
     return render_template("staff_member.html", staff_member=staff_member)
 
 
@@ -333,7 +368,7 @@ def view_staff_member(staff_id):
 def edit_staff(staff_id):
     """ Edit staff member information in the database. """
 
-    staff = Staff.query(Staff.id == staff_id).first()
+    staff = Staff.query.filter(Staff.id == staff_id).first()
     if request.method == "POST":
         name = request.form["name"]
         phone_num = request.form["phone_num"]
@@ -358,7 +393,7 @@ def edit_staff(staff_id):
 def delete_staff(staff_id):
     """ Delete a staff member from the database. """
 
-    staff = Staff.query(Staff.id == staff_id).first()
+    staff = Staff.query.filter(Staff.id == staff_id).first()
     db.session.delete(staff)
     staff.project = ''
     staff.lab = ''
@@ -378,7 +413,7 @@ def view_labs():
 def view_lab(lab_id):
     """ View a specific lab and its info based on its id. """
 
-    lab = Lab.query(Lab.id == lab_id).first()
+    lab = Lab.query.filter(Lab.id == lab_id).first()
     return render_template("lab.html", lab=lab)
 
 
@@ -386,7 +421,7 @@ def view_lab(lab_id):
 def edit_lab(lab_id):
     """ Edit lab information in the database. """
 
-    lab = Lab.query(Lab.id == lab_id).first()
+    lab = Lab.query.filter(Lab.id == lab_id).first()
     if request.method == "POST":
         name = request.form["name"]
         last_name = request.form["last_name"]
@@ -399,7 +434,7 @@ def edit_lab(lab_id):
             flash(error)
         else:
             lab.name = name
-            lab.head = Staff.query(Staff.name == last_name).first()
+            lab.head = Staff.query.filter(Staff.name == last_name).first()
         db.session.commit()
         return redirect(url_for(view_projects))
     return render_template("edit_lab.html", lab=lab)
@@ -409,7 +444,7 @@ def edit_lab(lab_id):
 def delete_lab(lab_id):
     """ Delete a lab from the database. """
 
-    lab = Lab.query(Lab.id == lab_id).first()
+    lab = Lab.query.filter(Lab.id == lab_id).first()
     db.session.delete(lab)
     lab.project = ''
     db.session.commit()

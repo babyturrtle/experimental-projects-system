@@ -12,8 +12,8 @@ class Project(db.Model):
     name = db.Column(db.String(500), unique=True, nullable=False)
     start_year = db.Column(db.String(7), unique=False, nullable=False)
     end_year = db.Column(db.String(7), unique=False, nullable=False)
-    applications = db.relationship('School', secondary=applications, lazy='subquery',
-                                   backref=db.backref('project', lazy=True))
+    schools = db.relationship('School', secondary=schools, lazy='subquery',
+                            backref=db.backref('project', lazy=True))
     heads = db.relationship('Staff', secondary=heads, lazy='subquery',
                             backref=db.backref('project', lazy=True))
     org_aid = db.relationship('Staff', secondary=org_aid, lazy='subquery',
@@ -66,7 +66,7 @@ class Lab(db.Model):
         return "<Lab {}: {}>".format(self.id, self.name)
 
 
-applications = db.Table(
+schools = db.Table(
     db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
     db.Column('school_id', db.Integer, db.ForeignKey('schools.id'), primary_key=True)
 )
