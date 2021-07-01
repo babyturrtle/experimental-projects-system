@@ -12,7 +12,7 @@ class Project(db.Model):
     start_year = db.Column(db.String(7), unique=False, nullable=False)
     end_year = db.Column(db.String(7), unique=False, nullable=False)
     schools = db.relationship('School', secondary=schools, lazy='subquery',
-                            backref=db.backref('project', lazy=True))
+                              backref=db.backref('project', lazy=True))
     heads = db.relationship('Staff', secondary=heads, lazy='subquery',
                             backref=db.backref('project', lazy=True))
     org_aid = db.relationship('Staff', secondary=org_aid, lazy='subquery',

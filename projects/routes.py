@@ -240,7 +240,10 @@ def import_application():
 def search_projects():
     """ Filter projects based on other parameters. """
 
-    query = ''
+    project_query_list = []
+    query_list = []
+    project_query = ""
+    query = ""
 
     if request.method == "POST":
 
@@ -258,21 +261,45 @@ def search_projects():
         school_city = request.form["school_city"]
 
         if name:
-            name_like = "%{}%".format(name)
-            results = Project.query.filter(Project.name.ilike(name_like)).all()
-            query += 'Project.name.like(name_like)'
+            project_query_list.append('Project.name.ilike(\'%\' + name + \'%\')')
         if start_year:
-            query += 'Project.start_year == start_year'
+            project_query_list.append('Project.start_year == start_year')
         if end_year:
-            query += 'Project.end_year == end_year'
-        if head:
-            query += 'Project.heads == head'
-        if org_aid:
-            query += 'Project.org_aid == org_aid'
-        if lab:
-            query += 'Project.sci_aid == lab'
+            project_query_list.append('Project.end_year == end_year')
 
-        # results = Project.query.filter(query).all()
+        if head:
+            head_query = {"model": "Staff", "query": 'Staff.name.ilike(\'%\' + head + \'%\')'}
+            query_list.append(head_query)
+        if org_aid:
+            org_aid_query = {"model": "Staff", "query": 'Staff.name.ilike(\'%\' + org_aid + \'%\')'}
+            query_list.append(org_aid_query)
+        if lab:
+            lab_query = {"model": "Lab", "query": 'Lab.name.ilike(\'%\' + lab + \'%\')'}
+            query_list.append(lab_query)
+        if school_name:
+            school_name_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_name + \'%\')'}
+            query_list.append(school_name_query)
+        if school_region:
+            school_region_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_region + \'%\')'}
+            query_list.append(school_region_query)
+        if school_district:
+            school_district_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_district + \'%\')'}
+            query_list.append(school_district_query)
+        if school_city:
+            school_city_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_city + \'%\')'}
+            query_list.append(school_city_query)
+
+        if project_query_list:
+            project_query = ", ".join(project_query_list)
+        results = db.session.query(Project).filter(project_query).all()
+        """
+        if project_query_list and query_list:
+            query = ", ".join(project_query_list) 
+            results = db.session.query(Project).join(project_query_list["model"]).filter(project_query).
+            filter(query).all()
+        """
+        # results = db.session.query(Project).filter(query).all()
+        # results = db.session.query(Project).join(model).filter(project_filter).filter(Model_filter).all()
 
         return render_template("result.html", results=results)
 
