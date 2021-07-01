@@ -1,0 +1,37 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}{{ project.name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <ul class="word">
+        <li>Сроки: {{ project.start_year }} - {{ project.end_year }}</li>
+        <li>Руководители:</li>
+         <ul>
+            {% for head in project.heads %}
+                <li><a href="{{ url_for('view_staff_member', staff_id=head.id) }}" class="link">{{ head.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <li>Организационное сопровождение:</li>
+         <ul>
+            {% for org_aid in project.org_aid %}
+                <li><a href="{{ url_for('view_staff_member', staff_id=org_aid.id) }}" class="link">{{ org_aid.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <li>Научно-методическое сопровождение:</li>
+         <ul>
+            {% for lab in project.sci_aid %}
+                <li><a href="{{ url_for('view_lab', lab_id=lab.id) }}" class="link">{{ lab.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <li>Учреждения образования:</li>
+         <ul>
+            {% for school in project.applications %}
+                <li><a href="{{ url_for('view_school', school_id=school.id) }}" class="link">{{ school.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </ul>
+    <br>
+    <a href="{{ url_for('edit_project', project_id=project.id) }}" class="button">Редактировать проект</a>
+{% endblock %}

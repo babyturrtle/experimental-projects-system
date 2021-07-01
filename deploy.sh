@@ -2,13 +2,15 @@
 
 if [ -d ".venv" ]
 then
-    source .venv/bin/activate
+    source .venv/Scripts/activate
     pip install -r requirements.txt
-    python3 wsgi.py
+    python wsgi.py
+    start http://localhost:5000/projects
 else
-    python3 -m venv .venv
-    source .venv/bin/activate
-    python3 -m pip install --upgrade pip
+    python -m venv .venv
+    source .venv/Scripts/activate
+    python -m pip install --upgrade pip
     pip install -r requirements.txt
-    python3 wsgi.py
+    python wsgi.py
+    start http://localhost:5000/projects
 fi
