@@ -1,0 +1,8 @@
+[ODBC]
+DRIVER=ODBC Driver 17 for SQL Server
+TrustServerCertificate=No
+DATABASE=experimental_projects
+WSID=MERLIN
+APP=Microsoft® Windows® Operating System
+Trusted_Connection=Yes
+SERVER=MERLIN
