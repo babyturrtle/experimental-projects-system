@@ -240,10 +240,8 @@ def import_application():
 def search_projects():
     """ Filter projects based on other parameters. """
 
-    project_query_list = []
     query_list = []
-    project_query = ""
-    query = ""
+    query = "db.session.query(Project)"
 
     if request.method == "POST":
 
@@ -257,47 +255,28 @@ def search_projects():
 
         school_name = request.form["school_name"]
         school_region = request.form["school_region"]
-        school_district = request.form["school_district"]
-        school_city = request.form["school_city"]
 
         if name:
-            project_query_list.append('Project.name.ilike(\'%\' + name + \'%\')')
+            query += '.filter(Project.name.ilike(\'%\' + name + \'%\'))'
         if start_year:
-            project_query_list.append('Project.start_year == start_year')
+            query += '.filter(Project.start_year == start_year)'
         if end_year:
-            project_query_list.append('Project.end_year == end_year')
-
+            query += '.filter(Project.end_year == end_year)'
         if head:
-            head_query = {"model": "Staff", "query": 'Staff.name.ilike(\'%\' + head + \'%\')'}
-            query_list.append(head_query)
+            query += ".join(Project.heads).filter(Staff.name.ilike(\'%\' + head + \'%\'))"
         if org_aid:
-            org_aid_query = {"model": "Staff", "query": 'Staff.name.ilike(\'%\' + org_aid + \'%\')'}
-            query_list.append(org_aid_query)
+            query += ".join(Project.org_aid).filter(Staff.name.ilike(\'%\' + org_aid + \'%\'))"
         if lab:
-            lab_query = {"model": "Lab", "query": 'Lab.name.ilike(\'%\' + lab + \'%\')'}
-            query_list.append(lab_query)
+            query += ".join(Project.sci_aid).filter(Lab.name.ilike(\'%\' + lab + \'%\'))"
         if school_name:
-            school_name_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_name + \'%\')'}
-            query_list.append(school_name_query)
+            query += ".join(Project.schools).filter(School.name.ilike(\'%\' + school_name + \'%\'))"
         if school_region:
-            school_region_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_region + \'%\')'}
-            query_list.append(school_region_query)
-        if school_district:
-            school_district_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_district + \'%\')'}
-            query_list.append(school_district_query)
-        if school_city:
-            school_city_query = {"model": "School", "query": 'School.name.ilike(\'%\' + school_city + \'%\')'}
-            query_list.append(school_city_query)
+            query += ".join(Project.schools).filter(School.name.ilike(\'%\' + school_region + \'%\'))"
 
-        if project_query_list:
-            project_query = ", ".join(project_query_list)
-        results = db.session.query(Project).filter(project_query).all()
-        """
-        if project_query_list and query_list:
-            query = ", ".join(project_query_list) 
-            results = db.session.query(Project).join(project_query_list["model"]).filter(project_query).
-            filter(query).all()
-        """
+        query += ".all()"
+
+        results = exec(query)
+
         # results = db.session.query(Project).filter(query).all()
         # results = db.session.query(Project).join(model).filter(project_filter).filter(Model_filter).all()
 
