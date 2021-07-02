@@ -12,7 +12,7 @@ def view_projects():
     """ View all the projects in the database in alphabetical order. """
 
     projects = Project.query.order_by(Project.name).all()
-    return render_template('projects.html', projects=projects)
+    return render_template('projects.jinja2', projects=projects)
 
 
 @app.route("/projects/<int:project_id>", methods=["GET"])
@@ -20,7 +20,7 @@ def view_project(project_id):
     """ View a specific project and its info based on its id. """
 
     project = Project.query.filter(Project.id == project_id).first()
-    return render_template("project.html", project=project)
+    return render_template("project.jinja2", project=project)
 
 
 """ --------------------------------- """
@@ -108,7 +108,7 @@ def edit_project(project_id):
 
         return redirect(url_for(view_project(project_id)))
 
-    return render_template("project_edit.html", project=project)
+    return render_template("project_edit.jinja2", project=project)
 
 
 @app.route("/projects/<int:project_id>/delete_school", methods=("POST",))
@@ -167,7 +167,7 @@ def delete_project(project_id):
     project.sci_aid = []
     db.session.commit()
 
-    return redirect(url_for(view_projects))
+    return redirect(url_for(view_projects()))
 
 
 """ ------------------------------------------ """
@@ -233,14 +233,13 @@ def import_application():
 
         return redirect("app.view_projects")
 
-    return render_template("upload.html")
+    return render_template("upload.jinja2")
 
 
 @app.route("/search", methods=["GET"])
 def search_projects():
     """ Filter projects based on other parameters. """
 
-    query_list = []
     query = "db.session.query(Project)"
 
     if request.method == "POST":
@@ -277,12 +276,9 @@ def search_projects():
 
         results = exec(query)
 
-        # results = db.session.query(Project).filter(query).all()
-        # results = db.session.query(Project).join(model).filter(project_filter).filter(Model_filter).all()
+        return render_template("result.jinja2", results=results)
 
-        return render_template("result.html", results=results)
-
-    return render_template('search.html')
+    return render_template('search.jinja2')
 
 
 """----------------------------"""
@@ -293,7 +289,7 @@ def view_schools():
     """ View all the schools in the database in alphabetical order. """
 
     schools = School.query.order_by(School.name).all()
-    return render_template('schools.html', schools=schools)
+    return render_template('schools.jinja2', schools=schools)
 
 
 @app.route("/schools/<int:school_id>", methods=["GET"])
@@ -301,7 +297,7 @@ def view_school(school_id):
     """ View a specific school and its info based on its id. """
 
     school = School.query.filter(School.id == school_id).first()
-    return render_template("school.html", school=school)
+    return render_template("school.jinja2", school=school)
 
 
 @app.route("/schools/<int:school_id>/edit", methods=("GET", "POST"))
@@ -332,8 +328,8 @@ def edit_school(school_id):
             school.region = region
             db.session.add(school)
             db.session.commit()
-        return redirect(url_for(view_projects))
-    return render_template("school_edit.html", school=school)
+        return redirect(url_for(view_projects()))
+    return render_template("school_edit.jinja2", school=school)
 
 
 @app.route("/schools/<int:school_id>/delete", methods=("POST",))
@@ -345,7 +341,7 @@ def delete_school(school_id):
     school.project = ''
     db.session.commit()
 
-    return redirect(url_for(view_projects))
+    return redirect(url_for(view_projects()))
 
 
 @app.route("/staff", methods=["GET"])
@@ -353,7 +349,7 @@ def view_staff():
     """ View all the staff members in the database in alphabetical order. """
 
     staff = Staff.query.order_by(Staff.name).all()
-    return render_template('staff.html', staff=staff)
+    return render_template('staff.jinja2', staff=staff)
 
 
 @app.route("/staff/<int:staff_id>", methods=["GET"])
@@ -361,7 +357,7 @@ def view_staff_member(staff_id):
     """ View a specific staff member and their info based on its id. """
 
     staff_member = Staff.query.filter(Staff.id == staff_id).first()
-    return render_template("staff_member.html", staff_member=staff_member)
+    return render_template("staff_member.jinja2", staff_member=staff_member)
 
 
 @app.route("/staff/<int:staff_id>/edit", methods=("GET", "POST"))
@@ -386,7 +382,7 @@ def edit_staff(staff_id):
             staff.description = description
             db.session.commit()
         return redirect(url_for(view_staff_member(staff_id)))
-    return render_template("edit_staff.html", staff=staff)
+    return render_template("edit_staff.jinja2", staff=staff)
 
 
 @app.route("/staff/<int:staff_id>/delete", methods=("POST",))
@@ -398,7 +394,7 @@ def delete_staff(staff_id):
     staff.project = ''
     staff.lab = ''
     db.session.commit()
-    return redirect(url_for(view_projects))
+    return redirect(url_for(view_projects()))
 
 
 @app.route("/labs", methods=["GET"])
@@ -406,7 +402,7 @@ def view_labs():
     """ View all the labs in the database in alphabetical order. """
 
     labs = Lab.query.order_by(Lab.name).all()
-    return render_template('labs.html', labs=labs)
+    return render_template('labs.jinja2', labs=labs)
 
 
 @app.route("/labs/<int:lab_id>", methods=["GET"])
@@ -414,7 +410,7 @@ def view_lab(lab_id):
     """ View a specific lab and its info based on its id. """
 
     lab = Lab.query.filter(Lab.id == lab_id).first()
-    return render_template("lab.html", lab=lab)
+    return render_template("lab.jinja2", lab=lab)
 
 
 @app.route("/labs/<int:lab_id>/edit", methods=("GET", "POST"))
@@ -436,8 +432,8 @@ def edit_lab(lab_id):
             lab.name = name
             lab.head = Staff.query.filter(Staff.name == last_name).first()
         db.session.commit()
-        return redirect(url_for(view_projects))
-    return render_template("edit_lab.html", lab=lab)
+        return redirect(url_for(view_projects()))
+    return render_template("edit_lab.jinja2", lab=lab)
 
 
 @app.route("/labs/<int:lab_id>/delete", methods=("POST",))
@@ -448,4 +444,4 @@ def delete_lab(lab_id):
     db.session.delete(lab)
     lab.project = ''
     db.session.commit()
-    return redirect(url_for(view_projects))
+    return redirect(url_for(view_projects()))

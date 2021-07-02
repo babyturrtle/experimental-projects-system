@@ -1,5 +1,5 @@
 html {
-  font-family: 'Josefin Sans', sans-serif;
+  font-family: 'Merriweather', serif;
   background: #eeeeee;
   padding: 1rem;
 }
@@ -132,7 +132,7 @@ nav ul li a, nav ul li span, header .action {
 }
 
 input[type=submit] {
-  font-family: 'Josefin Sans', sans-serif;
+  font-family: 'Merriweather', serif;
   background-color: #000000;
   border: none;
   color: white;
@@ -153,7 +153,7 @@ input.danger {
 
 input.delete {
   background-color: #cc2f2e;
-  font-family: 'Josefin Sans', sans-serif;
+  font-family: 'Merriweather', serif;
   padding: 5px 10px;
   text-align: center;
   text-decoration: none;
