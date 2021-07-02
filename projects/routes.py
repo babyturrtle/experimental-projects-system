@@ -410,7 +410,8 @@ def view_lab(lab_id):
     """ View a specific lab and its info based on its id. """
 
     lab = Lab.query.filter(Lab.id == lab_id).first()
-    return render_template("lab.jinja2", lab=lab)
+    head = Staff.query.filter(Staff.id == lab.staff_id).first()
+    return render_template("lab.jinja2", lab=lab, head=head)
 
 
 @app.route("/labs/<int:lab_id>/edit", methods=("GET", "POST"))

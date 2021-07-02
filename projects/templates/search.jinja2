@@ -1,0 +1,55 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}Поиск{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form class="main" method="post">
+        <label for="name">Название проекта:</label>
+        <input name="name" id="name" value="{{ request.form["name"] }}">
+
+        <label for="year">Сроки проекта:</label>
+        <input name="start_year" id="year" value="{{ request.form["start_year"] }}">
+        <input name="end_year" id="year" value="{{ request.form["end_year"] }}">
+
+
+        <label for="head">Руководитель проекта:</label>
+        <input name="head" id="head" value="{{ request.form["head"] }}">
+
+         <div>
+        <label for="region">Область:</label>
+        <div>
+            <input type="radio" id="brest" name="region" value="Брестская область">
+            <label for="brest">Брестская область</label>
+        </div>
+        <div>
+            <input type="radio" id="vitebsk" name="region" value="Витебская область">
+            <label for="vitebsk">Витебская область</label>
+        </div>
+        <div>
+            <input type="radio" id="homel" name="region" value="Гомельская область">
+            <label for="homel">Гомельская область</label>
+        </div>
+        <div>
+            <input type="radio" id="hrodno" name="region" value="Гродненская область">
+            <label for="hrodno">Гродненская область</label>
+        </div>
+        <div>
+            <input type="radio" id="minsk" name="region" value="Минская область">
+            <label for="minsk">Минская область</label>
+        </div>
+        <div>
+            <input type="radio" id="mohilev" name="region" value="Могилевская область">
+            <label for="mohilev">Могилевская область</label>
+        </div>
+        <div>
+            <input type="radio" id="minsk-city" name="region" value="Город Минск">
+            <label for="minsk-city">Город Минск</label>
+        </div>
+        </div>
+
+        <input type="submit" value="Найти проект">
+    </form>
+    
+{% endblock %}
