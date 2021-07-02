@@ -1,0 +1,15 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}{{ staff_member.name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <ul class="word">
+        <li>Телефон: {{ staff_member.phone_num }}</li>
+        <li>Email: {{ staff_member.email }}</li>
+        <li>{{ staff_member.description }}</li>
+    </ul>
+    <br>
+    <a href="{{ url_for('edit_staff', staff_id=staff_member.id) }}" class="button">Редактировать сотрудника</a>
+{% endblock %}

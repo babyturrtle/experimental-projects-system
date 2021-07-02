@@ -1,0 +1,44 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}Добавить заявку{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form class="main" method="post" style="display: flex; flex-direction: column;" enctype=multipart/form-data>
+        <div>
+        <label for="region">Область:</label>
+        <div>
+            <input type="radio" id="brest" name="region" value="Брестская область">
+            <label for="brest">Брестская область</label>
+        </div>
+        <div>
+            <input type="radio" id="vitebsk" name="region" value="Витебская область">
+            <label for="vitebsk">Витебская область</label>
+        </div>
+        <div>
+            <input type="radio" id="homel" name="region" value="Гомельская область">
+            <label for="homel">Гомельская область</label>
+        </div>
+        <div>
+            <input type="radio" id="hrodno" name="region" value="Гродненская область">
+            <label for="hrodno">Гродненская область</label>
+        </div>
+        <div>
+            <input type="radio" id="minsk" name="region" value="Минская область">
+            <label for="minsk">Минская область</label>
+        </div>
+        <div>
+            <input type="radio" id="mohilev" name="region" value="Могилевская область">
+            <label for="mohilev">Могилевская область</label>
+        </div>
+        <div>
+            <input type="radio" id="minsk-city" name="region" value="Город Минск">
+            <label for="minsk-city">Город Минск</label>
+        </div>
+        </div>
+        <label for="file"></label>
+        <input type="submit" value="Загрузите файл" style="width: 15%">
+        <script src="../static/javascript.js"></script>
+    </form>
+{% endblock %}

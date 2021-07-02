@@ -1,0 +1,15 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}{{ school.name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <ul class="word">
+        <li>Город: {{ school.city }}</li>
+        <li>Район: {{ school.district }}</li>
+        <li>Область: {{ school.region }}</li>
+    </ul>
+    <br>
+    <a href="{{ url_for('edit_school', school_id=school.id) }}" class="button">Редактировать ГУО</a>
+{% endblock %}
