@@ -1,0 +1,13 @@
+{% extends 'base.jinja2' %}
+
+{% block header %}
+    <h1>{% block title %}Сотрудники{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <ul class="word">
+        {% for staff_member  in staff %}
+            <li><a href="{{ url_for('view_staff_member', staff_id=staff_member.id) }}" class="link">{{ staff_member.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
