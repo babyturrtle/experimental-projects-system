@@ -4,7 +4,7 @@
 
 ## Запуск приложения:
 
-### 1. Переменные окружения
+### Переменные окружения
 
 Необходимо заменить значения в файле **.env** на необходимые:
 
@@ -13,28 +13,10 @@
 * `SECRET_KEY`: Случайчным образом сгенерированная строка символов для кодирования данных приложения.
 * `SQLALCHEMY_DATABASE_URI`: URI соединение SQLAlchemy с базой данных SQL (MySQL).
 
-### 2. Установка
+### Установка
 
 ```shell
 $ git clone https://github.com/babyturrtle/practice.git
 $ cd practice
 $ make deploy
 ``` 
-
-### 3. Создание базы данных SQL
-
-- Зайдите в MySQL сервер и создайте базу данных
-
-```shell
-mysql -u root -p
-CREATE DATABASE experimental_projects CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-\q
-```
-
-- Создайте необходимые таблицы из моделей
-
-```shell
-python models.py shell
-from models import db
-db.create_all()
-```
