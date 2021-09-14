@@ -11,7 +11,7 @@
 * `FLASK_APP`: Входная точка приложения; должно быть `wsgi.py`.
 * `FLASK_ENV`: Окружение, в котором работает приложение; либо `development` либо `production`.
 * `SECRET_KEY`: Случайчным образом сгенерированная строка символов для кодирования данных приложения.
-* `SQLALCHEMY_DATABASE_URI`: URI соединение SQLAlchemy с базой данных SQL (MySQL).
+* `SQLALCHEMY_DATABASE_URI`: URI соединение SQLAlchemy с базой данных SQL.
 
 ### Установка
 
